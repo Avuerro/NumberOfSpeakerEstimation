@@ -23,3 +23,4 @@ def flacs_to_wavs(new_dir = "./data/wavs/"):
                     os.makedirs(new_dir+filepath)
 
                 wavfile.write(new_dir+clean_filepath+new_file, samplerate, data)
+                
