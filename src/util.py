@@ -26,7 +26,6 @@ def flacs_to_wavs(new_dir = "./data/test_wavs/"):
 def split_audio_in_samples(t = 5, new_dir = "./data/wav_splits/",data_dir = "./data/wavs/"):
     for subdir, dirs, files in os.walk(data_dir):
         for file in files:
-            #print( os.path.join(subdir, file))
             filepath = subdir + os.sep + file
 
             if filepath.endswith(".wav"):
@@ -35,8 +34,8 @@ def split_audio_in_samples(t = 5, new_dir = "./data/wav_splits/",data_dir = "./d
                 previous_cut = 0
                 filepath = filepath.replace(file, "")
                 
-                clean_filepath = filepath.replace("./data/wavs/dev-clean/", "")
-                
+                clean_filepath = filepath.replace("./data/wavs/", "")
+
                 if not os.path.exists(new_dir+clean_filepath):
                     os.makedirs(new_dir+clean_filepath)
                 
