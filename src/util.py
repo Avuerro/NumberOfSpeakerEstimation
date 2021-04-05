@@ -50,7 +50,7 @@ def split_audio_in_samples(t = 5, new_dir = "./data/wav_splits/",data_dir = "./d
                     new_file = '{}_split_{}.wav'.format(file,nr_of_splits)
                     wavfile.write(new_dir+clean_filepath+new_file, samplerate, np.concatenate((data, amount_of_padding)))
                 else:
-                    for i in range(0,):
+                    for i in range(0,nr_of_splits):
                         
                         new_file = '{}_split_{}.wav'.format(file,i)
                         
