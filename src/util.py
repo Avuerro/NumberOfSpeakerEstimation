@@ -6,24 +6,27 @@ from scipy.io import wavfile
 import soundfile as sf
 
 
-def flacs_to_wavs(new_dir = "./data/test_wavs/"):
-    for subdir, dirs, files in os.walk("./data/test/"):
+def flacs_to_wavs(new_dir = "./data/wavs100/", a = -1, b = 1):
+    for subdir, dirs, files in os.walk("./data/LibriSpeech 2/"):
         for file in files:
-            #print( os.path.join(subdir, file))
             filepath = subdir + os.sep + file
 
             if filepath.endswith(".flac"):
                 data, samplerate = sf.read(filepath)
-
+                # Min Max Normalization:
+                #data = a + ((data - data.min()) * (b - a))/(data.max() - data.min())
                 filepath = filepath.replace(file, "")
-                clean_filepath = filepath.replace("./data/test/dev-clean/", "")
+                
+                clean_filepath = filepath.replace("./data/LibriSpeech 2/", "")
+                
                 new_file = file.replace('.flac', '.wav')
+                
                 if not os.path.exists(new_dir+clean_filepath):
-                    os.makedirs(new_dir+filepath)
+                    os.makedirs(new_dir+clean_filepath)
 
                 wavfile.write(new_dir+clean_filepath+new_file, samplerate, data)
 
-def split_audio_in_samples(t = 5, new_dir = "./data/wav_splits/",data_dir = "./data/wavs/"):
+def split_audio_in_samples(t = 5, new_dir = "./data/train100/",data_dir = "./data/wavs100/"):
     for subdir, dirs, files in os.walk(data_dir):
         for file in files:
             filepath = subdir + os.sep + file
@@ -34,9 +37,10 @@ def split_audio_in_samples(t = 5, new_dir = "./data/wav_splits/",data_dir = "./d
                 previous_cut = 0
                 filepath = filepath.replace(file, "")
                 
-                clean_filepath = filepath.replace("./data/wavs/", "")
-
+                clean_filepath = filepath.replace("./data/wavs100/", "")
+                #print(clean_filepath)
                 if not os.path.exists(new_dir+clean_filepath):
+
                     os.makedirs(new_dir+clean_filepath)
                 
                 file = file.replace(".wav","")
