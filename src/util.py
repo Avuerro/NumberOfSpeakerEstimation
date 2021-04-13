@@ -26,14 +26,14 @@ def flacs_to_wavs(new_dir = "./data/wavs100/", a = -1, b = 1):
 
                 wavfile.write(new_dir+clean_filepath+new_file, samplerate, data)
 
-def split_audio_in_samples(t = 5, new_dir = "./data/train100/",data_dir = "./data/wavs100/"):
+def split_audio_in_samples(t = 5, new_dir = "./data/train100/",data_dir = "./data/wavs100/", a = -1, b = 1):
     for subdir, dirs, files in os.walk(data_dir):
         for file in files:
             filepath = subdir + os.sep + file
 
             if filepath.endswith(".wav"):
                 data, samplerate = sf.read(filepath)
-                
+                #data = a + ((data - data.min()) * (b - a))/(data.max() - data.min())
                 previous_cut = 0
                 filepath = filepath.replace(file, "")
                 
