@@ -13,8 +13,6 @@ def flacs_to_wavs(input_dir, output_dir):
             filepath = subdir + os.sep + file
             if filepath.endswith(".flac"):
                 data, samplerate = sf.read(filepath)
-    #             # Min Max Normalization:
-    #             #data = a + ((data - data.min()) * (b - a))/(data.max() - data.min())
                 speaker_id,book_id,chapter = file.split("-")
                 new_file_name =file.replace('.flac', '.wav')
                 location_dir = os.path.join(output_dir,speaker_id)
