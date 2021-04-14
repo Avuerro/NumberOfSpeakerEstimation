@@ -6,25 +6,25 @@ from scipy.io import wavfile
 import soundfile as sf
 
 
-def flacs_to_wavs(new_dir = "./data/wavs100/", a = -1, b = 1):
-    for subdir, dirs, files in os.walk("./data/LibriSpeech 2/"):
+def flacs_to_wavs(input_dir, output_dir):
+    print(input_dir)
+    for subdir, dirs, files in os.walk(input_dir):
         for file in files:
             filepath = subdir + os.sep + file
-
             if filepath.endswith(".flac"):
                 data, samplerate = sf.read(filepath)
-                # Min Max Normalization:
-                #data = a + ((data - data.min()) * (b - a))/(data.max() - data.min())
-                filepath = filepath.replace(file, "")
-                
-                clean_filepath = filepath.replace("./data/LibriSpeech 2/", "")
-                
-                new_file = file.replace('.flac', '.wav')
-                
-                if not os.path.exists(new_dir+clean_filepath):
-                    os.makedirs(new_dir+clean_filepath)
+    #             # Min Max Normalization:
+    #             #data = a + ((data - data.min()) * (b - a))/(data.max() - data.min())
+                speaker_id,book_id,chapter = file.split("-")
+                new_file_name =file.replace('.flac', '.wav')
+                location_dir = os.path.join(output_dir,speaker_id)
+                new_file_path = os.path.join(output_dir,speaker_id,new_file_name)
+                if not os.path.exists(location_dir):
+                    os.makedirs(location_dir)
 
-                wavfile.write(new_dir+clean_filepath+new_file, samplerate, data)
+                wavfile.write(new_file_path, samplerate, data)
+
+
 
 def split_audio_in_samples(t = 5, new_dir = "./data/train100/",data_dir = "./data/wavs100/", a = -1, b = 1):
     for subdir, dirs, files in os.walk(data_dir):
