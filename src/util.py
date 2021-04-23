@@ -5,6 +5,7 @@ import sys
 from scipy.io import wavfile
 import soundfile as sf
 import subprocess
+import librosa
 
 
 def flacs_to_wavs(data_dir = "./data/LibriSpeech/", new_dir = "./data/wavs100/"):
@@ -196,3 +197,27 @@ def merge_audiofiles(data_dir = './data/train100/', new_dir = "./data/trainset/"
         i += 1
         amount_of_datapoints +=1
     print("Created {} unique datapoints".format(amount_of_datapoints))
+
+def create_stfts(data_dir = "./data/trainset"):
+    if not os.path.exists("{}stfts".format(data_dir)):
+        os.makedirs("{}stfts".format(data_dir))
+
+    for subdir, dirs, files in os.walk(data_dir):
+        for file in files:
+            filepath = subdir + os.sep + file
+
+            if filepath.endswith(".wav"):
+                # data, samplerate = sf.read(filepath)
+                # loudness = compute_loudness(data, samplerate)
+                # scaling = target - loudness
+
+                clean_filepath = filepath.replace(file, "")
+                
+                clean_filepath = clean_filepath.replace(data_dir, "")
+                clean_filepath = clean_filepath.replace('train','stft')
+                
+                print(data_dir+clean_filepath+file)
+                if not os.path.exists(data_dir+clean_filepath):
+                    os.makedirs(data_dir+clean_filepath)
+
+                
