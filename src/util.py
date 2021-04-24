@@ -23,16 +23,16 @@ def flacs_to_wavs(data_dir = "./data/LibriSpeech/", new_dir = "./data/wavs100/")
                 clean_filepath = filepath.replace(data_dir, "")
                 
                 new_file = file.replace('.flac', '.wav')
-                
                 if not os.path.exists(new_dir+clean_filepath):
                     os.makedirs(new_dir+clean_filepath)
 
                 wavfile.write(new_dir+clean_filepath+new_file, samplerate, data)
 
+def pad_audio_file(audio_file, sample_rate, total_time):
+    amount_of_padding = np.zeros(total_time*sample_rate - len(audio_file))
+    return np.concatenate( (data, amount_of_padding) )
 
 def split_audio_in_samples(data_dir = "./data/wavs100/", new_dir = "./data/splits100/", t = 5):
-    if not os.path.exists(new_dir):
-        os.makedirs(new_dir)
 
     for subdir, dirs, files in os.walk(data_dir):
         for file in files:
@@ -54,11 +54,9 @@ def split_audio_in_samples(data_dir = "./data/wavs100/", new_dir = "./data/split
                 nr_of_splits = int(len(data)/(t*samplerate))
 
                 if nr_of_splits == 0:
-                    amount_of_padding = np.zeros(t*samplerate - len(data))
-
-
-                    new_file = '{}_split_{}.wav'.format(file,nr_of_splits)
-                    wavfile.write(new_dir+clean_filepath+new_file, samplerate, np.concatenate((data, amount_of_padding)))
+                    padded_audio_file = pad_audio_file(data, samplerate, t)
+                    new_file = '{}_split_{}.wav'.format(file,nr_of_splits) #hmm 0 splits?
+                    wavfile.write(new_dir+clean_filepath+new_file, samplerate, padded_audio_file)
                 else:
                     for i in range(0,nr_of_splits):
                         
@@ -94,6 +92,8 @@ def change_loudness(data_dir = "./data/splits100/", new_dir = "./data/normalized
                     os.makedirs(new_dir+clean_filepath)
 
                 subprocess.call('ffmpeg -i {} -filter:a "volume={}dB" {}'.format(filepath, scaling, new_dir+clean_filepath+file), shell=True)
+
+
 
 def merge_audiofiles(data_dir = './data/train100/', new_dir = "./data/trainset/", max_nr_of_speakers = 10, a =-1, b = 1):
 
