@@ -134,7 +134,7 @@ def merge_audiofiles(data_dir = './data/train100/', new_dir = "./data/trainset/"
     amount_of_datapoints = 0
     while(files_per_speaker.shape[0] > 0):
         # Calculate how many speakers should be merged
-        amount_of_speakers = i % max_nr_of_speakers 
+        amount_of_speakers = i % (max_nr_of_speakers + 1)
         
         # Check how many speakers are left
         number_of_rows = files_per_speaker.shape[0]
