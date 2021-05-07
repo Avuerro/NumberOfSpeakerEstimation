@@ -34,7 +34,7 @@ def flacs_to_wavs(data_dir = "./data/LibriSpeech/", new_dir = "./data/wavs100/")
 
 def pad_audio_file(audio_file, sample_rate, total_time):
     amount_of_padding = np.zeros(total_time*sample_rate - len(audio_file))
-    return np.concatenate( (data, amount_of_padding) )
+    return np.concatenate( (audio_file, amount_of_padding) )
 
 def split_audio_in_samples(data_dir = "./data/wavs100/", new_dir = "./data/splits100/", t = 5):
 
@@ -225,6 +225,6 @@ def create_spectrograms(input_dir, spectro_output_dir, n_fft=400,hop_length=160,
 
                 new_file_name = os.path.join(output_dir,file_name)
                 sample,sr = sf.read(audio_file_location)
-                X_stft = stft(sample, n_fft=400,hop_length=160,window=signal.windows.hann)
+                X_stft = stft(sample, n_fft=400,hop_length=160,window=signal.windows.hann).T.T.T
 
-                plt.imsave(new_file_name, X_stft)
+                plt.imsave(new_file_name, X_stft, cmap = 'hot')
