@@ -225,6 +225,6 @@ def create_spectrograms(input_dir, spectro_output_dir, n_fft=400,hop_length=160,
 
                 new_file_name = os.path.join(output_dir,file_name)
                 sample,sr = sf.read(audio_file_location)
-                X_stft = stft(sample, n_fft=400,hop_length=160,window=signal.windows.hann).T.T.T
+                X_stft = stft(sample, n_fft=400,hop_length=160,window=signal.windows.hann).T
 
                 plt.imsave(new_file_name, X_stft, cmap = 'hot')
