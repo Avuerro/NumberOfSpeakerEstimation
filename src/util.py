@@ -17,7 +17,7 @@ def flacs_to_wavs(data_dir = "./data/LibriSpeech/", new_dir = "./data/wavs100/")
         os.makedirs(new_dir)
     
     for subdir, dirs, files in tqdm(os.walk(data_dir)):
-        for file in files[:2]:
+        for file in files:
             filepath = subdir + os.sep + file
             if filepath.endswith(".flac"):
                 data, samplerate = sf.read(filepath)
