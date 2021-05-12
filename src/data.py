@@ -4,7 +4,7 @@ from keras import backend as k
 import pdb
 import os
 
-class CustomDataGenerator(tf.keras.preprocessing.image.DirectoryIterator):
+class CustomDataIterator(tf.keras.preprocessing.image.DirectoryIterator):
 
     def __init__(self,*args,**kwargs):
         self.label_dir = kwargs.pop('label_dir')
@@ -49,8 +49,9 @@ class CustomDataGenerator(tf.keras.preprocessing.image.DirectoryIterator):
 def create_tensorflow_dataset(data_dir, batch_size, data_format='channels_first',color_mode='grayscale', target_size=(500,201) ,datagenerator=None, val_split = None):
     if datagenerator is None:
         datagenerator = tf.keras.preprocessing.image.ImageDataGenerator(rescale=1./255,validation_split = val_split)
-    
-    return CustomDataGenerator(data_dir, 
+    # train_dataset = tf.keras.preprocessing.image.DirectoryIterator(data_dir, datagenerator,batch_size=batch_size, data_format=data_format, color_mode=color_mode, target_size=target_size, subset = 'training')
+    # validation_dataset = tf.keras.preprocessing.image.DirectoryIterator(data_dir, datagenerator,batch_size=batch_size, data_format=data_format, color_mode=color_mode, target_size=target_size, subset = 'validation')
+    train_dataset = CustomDataIterator(data_dir, 
                             datagenerator,
                             label_dir='../data/merged_outputmetadata/',
                             batch_size=batch_size, 
@@ -58,7 +59,13 @@ def create_tensorflow_dataset(data_dir, batch_size, data_format='channels_first'
                             color_mode=color_mode, 
                             target_size=target_size, 
                             subset = 'training')
-    # train_dataset =   tf.keras.preprocessing.image.DirectoryIterator(data_dir, datagenerator,batch_size=batch_size, data_format=data_format, color_mode=color_mode, target_size=target_size, subset = 'training')
-    # validation_dataset =   tf.keras.preprocessing.image.DirectoryIterator(data_dir, datagenerator,batch_size=batch_size, data_format=data_format, color_mode=color_mode, target_size=target_size, subset = 'validation')
-    # return train_dataset, validation_dataset
+    validation_dataset = CustomDataIterator(data_dir, 
+                            datagenerator,
+                            label_dir='../data/merged_outputmetadata/',
+                            batch_size=batch_size, 
+                            data_format=data_format, 
+                            color_mode=color_mode, 
+                            target_size=target_size, 
+                            subset = 'validation')
+    return train_dataset, validation_dataset
 
