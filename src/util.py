@@ -230,4 +230,4 @@ def create_spectrograms(input_dir, spectro_output_dir, n_fft=400,hop_length=160,
                 X_stft = np.flipud(stft(sample, n_fft=400,hop_length=160,window=signal.windows.hann).T)
                 
 
-                plt.imsave(new_file_name, X_stft, cmap = 'hot')
+                plt.imsave(new_file_name, X_stft, cmap = 'hot', vmin=0,vmax=10)
