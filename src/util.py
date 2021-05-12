@@ -16,10 +16,9 @@ def flacs_to_wavs(data_dir = "./data/LibriSpeech/", new_dir = "./data/wavs100/")
     if not os.path.exists(new_dir):
         os.makedirs(new_dir)
     
-    for subdir, dirs, files in os.walk(data_dir):
+    for subdir, dirs, files in tqdm(os.walk(data_dir)):
         for file in files:
             filepath = subdir + os.sep + file
-
             if filepath.endswith(".flac"):
                 data, samplerate = sf.read(filepath)
  
@@ -38,7 +37,7 @@ def pad_audio_file(audio_file, sample_rate, total_time):
 
 def split_audio_in_samples(data_dir = "./data/wavs100/", new_dir = "./data/splits100/", t = 5):
 
-    for subdir, dirs, files in os.walk(data_dir):
+    for subdir, dirs, files in tqdm(os.walk(data_dir)):
         for file in files:
             filepath = subdir + os.sep + file
 
@@ -79,7 +78,7 @@ def change_loudness(data_dir = "./data/splits100/", new_dir = "./data/normalized
     if not os.path.exists(new_dir):
         os.makedirs(new_dir)
 
-    for subdir, dirs, files in os.walk(data_dir):
+    for subdir, dirs, files in tqdm(os.walk(data_dir)):
         for file in files:
             filepath = subdir + os.sep + file
 
@@ -132,6 +131,8 @@ def merge_audiofiles(data_dir = './data/train100/', new_dir = "./data/trainset/"
     print("Now starting to merge files...")
     i = 1
     amount_of_datapoints = 0
+    progress_bar = tqdm(total = amount_of_datapoints) 
+    
     while(files_per_speaker.shape[0] > 0):
         # Calculate how many speakers should be merged
         amount_of_speakers = i % (max_nr_of_speakers + 1)
@@ -201,7 +202,8 @@ def merge_audiofiles(data_dir = './data/train100/', new_dir = "./data/trainset/"
         files_per_speaker = np.delete(files_per_speaker, ids_to_remove)
         i += 1
         amount_of_datapoints +=1
-        
+        progress_bar.update(len(ids_to_remove)) 
+    progress_bar.close()
     print("Created {} unique datapoints".format(amount_of_datapoints))
 
 
