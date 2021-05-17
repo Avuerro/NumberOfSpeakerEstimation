@@ -236,9 +236,9 @@ def merge_audiofiles(data_dir = './data/train100/', new_dir = "./data/trainset/"
             # Load file
             sample, samplerate = sf.read(audio_file)
 
-            # make sure length is 80000
-            if sample.shape[0] != 80000:
-                to_append = 80000 - sample.shape[0]
+            # make sure length is 160000
+            if sample.shape[0] != 160000:
+                to_append = 160000 - sample.shape[0]
                 zeros = np.zeros(to_append)
                 sample = np.concatenate((sample, zeros))
             
