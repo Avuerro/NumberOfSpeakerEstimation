@@ -36,39 +36,41 @@ def pad_audio_file(audio_file, sample_rate, total_time):
     amount_of_padding = np.zeros(total_time*sample_rate - len(audio_file))
     return np.concatenate( (audio_file, amount_of_padding) )
 
-def split_audio_in_samples(data_dir = "./data/wavs100/", new_dir = "./data/splits100/", t = 5):
+# OLD FUNCTION ::
+# def split_audio_in_samples(data_dir = "./data/wavs100/", new_dir = "./data/splits100/", t = 5):
 
-    for subdir, dirs, files in tqdm(os.walk(data_dir)):
-        for file in files:
-            filepath = subdir + os.sep + file
+#     for subdir, dirs, files in tqdm(os.walk(data_dir)):
+#         for file in files:
+#             filepath = subdir + os.sep + file
 
-            if filepath.endswith(".wav"):
-                data, samplerate = sf.read(filepath)
-                previous_cut = 0
-                filepath = filepath.replace(file, "")
+#             if filepath.endswith(".wav"):
+#                 data, samplerate = sf.read(filepath)
+#                 previous_cut = 0
+#                 filepath = filepath.replace(file, "")
                 
-                clean_filepath = filepath.replace(data_dir, "")
+#                 clean_filepath = filepath.replace(data_dir, "")
                 
-                if not os.path.exists(new_dir+clean_filepath):
+#                 if not os.path.exists(new_dir+clean_filepath):
 
-                    os.makedirs(new_dir+clean_filepath)
+#                     os.makedirs(new_dir+clean_filepath)
                 
-                file = file.replace(".wav","")
+#                 file = file.replace(".wav","")
                 
-                nr_of_splits = int(len(data)/(t*samplerate))
+#                 nr_of_splits = int(len(data)/(t*samplerate))
 
-                if nr_of_splits == 0:
-                    padded_audio_file = pad_audio_file(data, samplerate, t)
-                    new_file = '{}_split_{}.wav'.format(file,nr_of_splits)
-                    wavfile.write(new_dir+clean_filepath+new_file, samplerate, padded_audio_file)
-                else:
-                    for i in range(0,nr_of_splits):
+#                 if nr_of_splits == 0:
+#                     padded_audio_file = pad_audio_file(data, samplerate, t)
+#                     new_file = '{}_split_{}.wav'.format(file,nr_of_splits)
+#                     wavfile.write(new_dir+clean_filepath+new_file, samplerate, padded_audio_file)
+#                 else:
+#                     for i in range(0,nr_of_splits):
                         
-                        new_file = '{}_split_{}.wav'.format(file,i)
+#                         new_file = '{}_split_{}.wav'.format(file,i)
                         
-                        split = data[previous_cut: previous_cut+t*samplerate]
-                        previous_cut = t*samplerate + 1
-                        wavfile.write(new_dir+clean_filepath+new_file, samplerate, split)
+#                         split = data[previous_cut: previous_cut+t*samplerate]
+#                         previous_cut = t*samplerate + 1
+#                         wavfile.write(new_dir+clean_filepath+new_file, samplerate, split)
+# OLD FUNCTION ^^
 
 def create_audio_splits(data_dir = "./data/wavs100/", new_dir = "./data/splits100/", t = 10):
     nr_of_files = 0
@@ -117,7 +119,7 @@ def create_audio_splits(data_dir = "./data/wavs100/", new_dir = "./data/splits10
                 
                 split = np.concatenate( (split, np.array(padding)) )
             new_file = '{}_split_{}.wav'.format(speaker_id,i)
-            clean_filepath = "{}/".format(speaker_id)
+            clean_filepath = "train-clean-100/{}/".format(speaker_id)
             if not os.path.exists(new_dir+clean_filepath):
                     os.makedirs(new_dir+clean_filepath)
             wavfile.write(new_dir+clean_filepath+new_file, sr, split)
