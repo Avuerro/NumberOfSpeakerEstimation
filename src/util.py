@@ -1,5 +1,6 @@
 import numpy as np
 import scipy as scipy
+import math
 import os
 import sys
 from scipy.io import wavfile
@@ -84,16 +85,45 @@ def create_audio_splits(data_dir = "./data/wavs100/", new_dir = "./data/splits10
         for subdir, dirs, files in os.walk(splits_dir+"/{}".format(speaker)):
             for f in files:
                 if f.endswith('.wav'):
-                    #nr_of_files +=1
                     speaker_files.append("{}/{}".format(subdir, f))
-
-
             if len(speaker_files) > 0 and speaker not in speakers_done:
                 nr_of_files += len(speaker_files)
                 speakers_done.append(speaker)
                 files_per_speaker.append(speaker_files)
     print("{} files found in total".format(nr_of_files))
     files_per_speaker = np.array(files_per_speaker)
+
+    for speaker in files_per_speaker:
+        complete_audio = []
+        while len(speaker) > 0:
+            filepath = speaker.pop(0)
+            speaker_id = filepath.split('/')[4]
+            
+            data, sr = sf.read(filepath)
+            #print(len(data))
+            complete_audio.extend(data)
+        #print(len(complete_audio))
+        # amount of splits to make:
+        nr_of_splits = math.ceil(len(complete_audio)/(t*sr))
+        
+        audio_splits = np.array_split(complete_audio, nr_of_splits)
+        
+        i = 0
+        for split in audio_splits:
+            if len(split) < (t*sr):
+                
+                to_pad = (t*sr) - len(split)
+                padding = split[0:to_pad]
+                
+                split = np.concatenate( (split, np.array(padding)) )
+            new_file = '{}_split_{}.wav'.format(speaker_id,i)
+            clean_filepath = "{}/".format(speaker_id)
+            if not os.path.exists(new_dir+clean_filepath):
+                    os.makedirs(new_dir+clean_filepath)
+            wavfile.write(new_dir+clean_filepath+new_file, sr, split)
+            i += 1
+
+
 
 def compute_loudness(audio, sr = 16000):
     
