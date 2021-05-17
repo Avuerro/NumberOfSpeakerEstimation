@@ -230,15 +230,15 @@ def merge_audiofiles(data_dir = './data/train100/', new_dir = "./data/trainset/"
                 ids_to_remove.append(speaker_id)
         
         # Now start the actual merging
-        data = np.zeros(80000)
+        data = np.zeros(160000)
 
         for audio_file in files_to_merge:
             # Load file
             sample, samplerate = sf.read(audio_file)
-
+            
             # make sure length is 160000
-            if sample.shape[0] != 160000:
-                to_append = 160000 - sample.shape[0]
+            if len(sample) != 160000:
+                to_append = 160000 - len(sample)
                 zeros = np.zeros(to_append)
                 sample = np.concatenate((sample, zeros))
             
