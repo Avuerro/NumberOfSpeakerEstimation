@@ -69,6 +69,32 @@ def split_audio_in_samples(data_dir = "./data/wavs100/", new_dir = "./data/split
                         previous_cut = t*samplerate + 1
                         wavfile.write(new_dir+clean_filepath+new_file, samplerate, split)
 
+def create_audio_splits(data_dir = "./data/wavs100/", new_dir = "./data/splits100/", t = 10):
+    nr_of_files = 0
+    files_per_speaker = []
+
+    # First generate a list of all speaker files
+    folder = os.listdir(data_dir)[0]
+    splits_dir = data_dir + folder
+    speakers = os.listdir(splits_dir)
+    speakers_done = []
+
+    for speaker in speakers:
+        speaker_files = []
+        for subdir, dirs, files in os.walk(splits_dir+"/{}".format(speaker)):
+            for f in files:
+                if f.endswith('.wav'):
+                    #nr_of_files +=1
+                    speaker_files.append("{}/{}".format(subdir, f))
+
+
+            if len(speaker_files) > 0 and speaker not in speakers_done:
+                nr_of_files += len(speaker_files)
+                speakers_done.append(speaker)
+                files_per_speaker.append(speaker_files)
+    print("{} files found in total".format(nr_of_files))
+    files_per_speaker = np.array(files_per_speaker)
+
 def compute_loudness(audio, sr = 16000):
     
     return 10*np.log10(np.sum(audio*audio) / (audio.shape[0] * 4 * (10**-10)) )
@@ -115,15 +141,20 @@ def merge_audiofiles(data_dir = './data/train100/', new_dir = "./data/trainset/"
     folder = os.listdir(data_dir)[0]
     splits_dir = data_dir + folder
     speakers = os.listdir(splits_dir)
+    speakers_done = []
 
     for speaker in speakers:
         speaker_files = []
         for subdir, dirs, files in os.walk(splits_dir+"/{}".format(speaker)):
             for f in files:
                 if f.endswith('.wav'):
-                    nr_of_files +=1
+                    #nr_of_files +=1
                     speaker_files.append("{}/{}".format(subdir, f))
-            if len(speaker_files) > 0:
+
+
+            if len(speaker_files) > 0 and speaker not in speakers_done:
+                nr_of_files += len(speaker_files)
+                speakers_done.append(speaker)
                 files_per_speaker.append(speaker_files)
     print("{} files found in total".format(nr_of_files))
     files_per_speaker = np.array(files_per_speaker)
