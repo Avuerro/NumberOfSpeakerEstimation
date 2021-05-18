@@ -4,6 +4,45 @@ from keras import backend as k
 import pdb
 import os
 
+
+def parse_function(filename, label):
+#     audio_sample, sample_rate = tf.audio.decode_wav(filename)    
+    audio_binary = tf.read_file(filename)
+    audio_decoded = tf.contrib.ffmpeg.decode_audio(
+        audio_binary,
+        file_format="wav",
+        samples_per_second=16000,
+        channel_count=1
+    )
+    return tf.cast(audio_decoded, tf.float32),label
+
+
+def select_random_excerpt(file,label): #length can be changed..
+    excerpt_duration=1
+    excerpt_duration_frames = excerpt_duration * 16000
+    limit = 80000 - excerpt_duration_frames
+    start = np.random.randint(0,limit)
+    end = start + excerpt_duration_frames
+#     pdb.set_trace()
+    return tf.slice(tf.squeeze(file), [start], [excerpt_duration_frames]),label
+
+
+## TODO 
+### add stft conversion
+### put this into a class
+filenames = glob.glob('../data/merged_outputtrain/*/*')
+labels = list(map(obtain_label, filenames))
+dataset = tf.data.Dataset.from_tensor_slices( (filenames,labels) )
+dataset = dataset.map(parse_function, num_parallel_calls=4)
+dataset = dataset.map(select_random_excerpt, num_parallel_calls=4)
+dataset = dataset.batch(32)
+dataset = dataset.prefetch(1)
+
+
+
+
+## NOTICE
+## everything below this comment is most likely obsolete
 class CustomDataIterator(tf.keras.preprocessing.image.DirectoryIterator):
 
     def __init__(self,*args,**kwargs):
@@ -46,9 +85,14 @@ class CustomDataIterator(tf.keras.preprocessing.image.DirectoryIterator):
 
         return self._get_batches_of_transformed_samples(index_array)
 
+def custom_preprocessing(sound_sample):
+    print(sound_sample.shape)
+
+
+
 def create_tensorflow_dataset(data_dir, batch_size, data_format='channels_first',color_mode='grayscale', target_size=(500,201) ,datagenerator=None, val_split = None):
     if datagenerator is None:
-        datagenerator = tf.keras.preprocessing.image.ImageDataGenerator(rescale=1./255,validation_split = val_split)
+        datagenerator = tf.keras.preprocessing.image.ImageDataGenerator(rescale=1./255,validation_split = val_split, preprocessing_function=custom_preprocessing)
     # train_dataset = tf.keras.preprocessing.image.DirectoryIterator(data_dir, datagenerator,batch_size=batch_size, data_format=data_format, color_mode=color_mode, target_size=target_size, subset = 'training')
     # validation_dataset = tf.keras.preprocessing.image.DirectoryIterator(data_dir, datagenerator,batch_size=batch_size, data_format=data_format, color_mode=color_mode, target_size=target_size, subset = 'validation')
     train_dataset = CustomDataIterator(data_dir, 
