@@ -1,5 +1,6 @@
 import numpy as np
 import scipy as scipy
+import math
 import os
 import sys
 from scipy.io import wavfile
@@ -35,39 +36,98 @@ def pad_audio_file(audio_file, sample_rate, total_time):
     amount_of_padding = np.zeros(total_time*sample_rate - len(audio_file))
     return np.concatenate( (audio_file, amount_of_padding) )
 
-def split_audio_in_samples(data_dir = "./data/wavs100/", new_dir = "./data/splits100/", t = 5):
+# OLD FUNCTION ::
+# def split_audio_in_samples(data_dir = "./data/wavs100/", new_dir = "./data/splits100/", t = 5):
 
-    for subdir, dirs, files in tqdm(os.walk(data_dir)):
-        for file in files:
-            filepath = subdir + os.sep + file
+#     for subdir, dirs, files in tqdm(os.walk(data_dir)):
+#         for file in files:
+#             filepath = subdir + os.sep + file
 
-            if filepath.endswith(".wav"):
-                data, samplerate = sf.read(filepath)
-                previous_cut = 0
-                filepath = filepath.replace(file, "")
+#             if filepath.endswith(".wav"):
+#                 data, samplerate = sf.read(filepath)
+#                 previous_cut = 0
+#                 filepath = filepath.replace(file, "")
                 
-                clean_filepath = filepath.replace(data_dir, "")
+#                 clean_filepath = filepath.replace(data_dir, "")
                 
-                if not os.path.exists(new_dir+clean_filepath):
+#                 if not os.path.exists(new_dir+clean_filepath):
 
-                    os.makedirs(new_dir+clean_filepath)
+#                     os.makedirs(new_dir+clean_filepath)
                 
-                file = file.replace(".wav","")
+#                 file = file.replace(".wav","")
                 
-                nr_of_splits = int(len(data)/(t*samplerate))
+#                 nr_of_splits = int(len(data)/(t*samplerate))
 
-                if nr_of_splits == 0:
-                    padded_audio_file = pad_audio_file(data, samplerate, t)
-                    new_file = '{}_split_{}.wav'.format(file,nr_of_splits)
-                    wavfile.write(new_dir+clean_filepath+new_file, samplerate, padded_audio_file)
-                else:
-                    for i in range(0,nr_of_splits):
+#                 if nr_of_splits == 0:
+#                     padded_audio_file = pad_audio_file(data, samplerate, t)
+#                     new_file = '{}_split_{}.wav'.format(file,nr_of_splits)
+#                     wavfile.write(new_dir+clean_filepath+new_file, samplerate, padded_audio_file)
+#                 else:
+#                     for i in range(0,nr_of_splits):
                         
-                        new_file = '{}_split_{}.wav'.format(file,i)
+#                         new_file = '{}_split_{}.wav'.format(file,i)
                         
-                        split = data[previous_cut: previous_cut+t*samplerate]
-                        previous_cut = t*samplerate + 1
-                        wavfile.write(new_dir+clean_filepath+new_file, samplerate, split)
+#                         split = data[previous_cut: previous_cut+t*samplerate]
+#                         previous_cut = t*samplerate + 1
+#                         wavfile.write(new_dir+clean_filepath+new_file, samplerate, split)
+# OLD FUNCTION ^^
+
+def create_audio_splits(data_dir = "./data/wavs100/", new_dir = "./data/splits100/", t = 10):
+    nr_of_files = 0
+    files_per_speaker = []
+
+    splits_dir = data_dir 
+    speakers = os.listdir(data_dir)
+    speakers_done = []
+
+    print("Searching for all speaker files")
+
+    for speaker in tqdm(speakers):
+        speaker_files = []
+        for subdir, dirs, files in os.walk(splits_dir+"/{}".format(speaker)):
+            for f in files:
+                if f.endswith('.wav'):
+                    speaker_files.append("{}/{}".format(subdir, f))
+            if len(speaker_files) > 0 and speaker not in speakers_done:
+                nr_of_files += len(speaker_files)
+                speakers_done.append(speaker)
+                files_per_speaker.append(speaker_files)
+    print("{} files found in total".format(nr_of_files))
+    files_per_speaker = np.array(files_per_speaker)
+    
+    print("Creating the splits")
+    for speaker in tqdm(files_per_speaker):
+        complete_audio = []
+        while len(speaker) > 0:
+            filepath = speaker.pop(0)
+            speaker_id = filepath.split('/')[4]
+            
+            data, sr = sf.read(filepath)
+            #print(len(data))
+            complete_audio.extend(data)
+        #print(len(complete_audio))
+        # amount of splits to make:
+        nr_of_splits = math.ceil(len(complete_audio)/(t*sr))
+        
+        audio_splits = np.array_split(complete_audio, nr_of_splits)
+        
+        i = 0
+        for split in audio_splits:
+            if len(split) < (t*sr):
+                
+                to_pad = (t*sr) - len(split)
+                padding = split[0:to_pad]
+                
+                split = np.concatenate( (split, np.array(padding)) )
+            new_file = '{}_split_{}.wav'.format(speaker_id,i)
+            clean_filepath = "{}/".format(speaker_id)
+            output_dir = os.path.join(new_dir,clean_filepath)
+            if not os.path.exists(output_dir):
+                    os.makedirs(output_dir)
+            wavfile.write(os.path.join(output_dir,new_file), sr, split)
+            i += 1
+
+
 
 def compute_loudness(audio, sr = 16000):
     
@@ -112,18 +172,22 @@ def merge_audiofiles(data_dir = './data/train100/', new_dir = "./data/trainset/"
     files_per_speaker = []
 
     # First generate a list of all speaker files
-    folder = os.listdir(data_dir)[0]
-    splits_dir = data_dir + folder
-    speakers = os.listdir(splits_dir)
+    splits_dir = data_dir 
+    speakers = os.listdir(data_dir)
+    speakers_done = []
 
     for speaker in speakers:
         speaker_files = []
         for subdir, dirs, files in os.walk(splits_dir+"/{}".format(speaker)):
             for f in files:
                 if f.endswith('.wav'):
-                    nr_of_files +=1
+                    #nr_of_files +=1
                     speaker_files.append("{}/{}".format(subdir, f))
-            if len(speaker_files) > 0:
+
+
+            if len(speaker_files) > 0 and speaker not in speakers_done:
+                nr_of_files += len(speaker_files)
+                speakers_done.append(speaker)
                 files_per_speaker.append(speaker_files)
     print("{} files found in total".format(nr_of_files))
     files_per_speaker = np.array(files_per_speaker)
@@ -167,15 +231,15 @@ def merge_audiofiles(data_dir = './data/train100/', new_dir = "./data/trainset/"
                 ids_to_remove.append(speaker_id)
         
         # Now start the actual merging
-        data = np.zeros(80000)
+        data = np.zeros(160000)
 
         for audio_file in files_to_merge:
             # Load file
             sample, samplerate = sf.read(audio_file)
-
-            # make sure length is 80000
-            if sample.shape[0] != 80000:
-                to_append = 80000 - sample.shape[0]
+            
+            # make sure length is 160000
+            if len(sample) != 160000:
+                to_append = 160000 - len(sample)
                 zeros = np.zeros(to_append)
                 sample = np.concatenate((sample, zeros))
             
