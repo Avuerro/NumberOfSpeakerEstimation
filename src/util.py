@@ -74,11 +74,11 @@ def pad_audio_file(audio_file, sample_rate, total_time):
 
 def create_audio_splits(data_dir = "./data/wavs100/", new_dir = "./data/splits100/", t = 10):
     nr_of_files = 0
-    files_per_speaker = []
 
     splits_dir = data_dir 
     speakers = os.listdir(data_dir)
     speakers_done = []
+    files_per_speaker = {speaker:[] for speaker in speakers}
 
     print("Searching for all speaker files")
 
@@ -91,16 +91,16 @@ def create_audio_splits(data_dir = "./data/wavs100/", new_dir = "./data/splits10
             if len(speaker_files) > 0 and speaker not in speakers_done:
                 nr_of_files += len(speaker_files)
                 speakers_done.append(speaker)
-                files_per_speaker.append(speaker_files)
+                files_per_speaker[speaker]  = speaker_files
     print("{} files found in total".format(nr_of_files))
-    files_per_speaker = np.array(files_per_speaker)
-    
+    # files_per_speaker = np.array(files_per_speaker)
     print("Creating the splits")
-    for speaker in tqdm(files_per_speaker):
+    for speaker in tqdm(files_per_speaker.keys()):
         complete_audio = []
-        while len(speaker) > 0:
-            filepath = speaker.pop(0)
-            speaker_id = filepath.split('/')[4]
+        # while len(speaker) > 0:
+        for filepath in files_per_speaker[speaker]:
+            # filepath = speaker.pop(0)
+            # speaker_id = filepath.split('/')[4]
             
             data, sr = sf.read(filepath)
             #print(len(data))
@@ -119,8 +119,8 @@ def create_audio_splits(data_dir = "./data/wavs100/", new_dir = "./data/splits10
                 padding = split[0:to_pad]
                 
                 split = np.concatenate( (split, np.array(padding)) )
-            new_file = '{}_split_{}.wav'.format(speaker_id,i)
-            clean_filepath = "{}/".format(speaker_id)
+            new_file = '{}_split_{}.wav'.format(speaker,i)
+            clean_filepath = "{}/".format(speaker)
             output_dir = os.path.join(new_dir,clean_filepath)
             if not os.path.exists(output_dir):
                     os.makedirs(output_dir)
