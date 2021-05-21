@@ -75,14 +75,14 @@ def pad_audio_file(audio_file, sample_rate, total_time):
 def create_audio_splits(data_dir = "./data/wavs100/", new_dir = "./data/splits100/", t = 10):
     nr_of_files = 0
     files_per_speaker = []
-
-    # First generate a list of all speaker files
-    folder = os.listdir(data_dir)[0]
-    splits_dir = data_dir + folder
-    speakers = os.listdir(splits_dir)
+    
+    splits_dir = data_dir 
+    speakers = os.listdir(data_dir)
     speakers_done = []
 
-    for speaker in speakers:
+    print("Searching for all speaker files")
+
+    for speaker in tqdm(speakers):
         speaker_files = []
         for subdir, dirs, files in os.walk(splits_dir+"/{}".format(speaker)):
             for f in files:
@@ -94,8 +94,9 @@ def create_audio_splits(data_dir = "./data/wavs100/", new_dir = "./data/splits10
                 files_per_speaker.append(speaker_files)
     print("{} files found in total".format(nr_of_files))
     files_per_speaker = np.array(files_per_speaker)
-
-    for speaker in files_per_speaker:
+    
+    print("Creating the splits")
+    for speaker in tqdm(files_per_speaker):
         complete_audio = []
         while len(speaker) > 0:
             filepath = speaker.pop(0)
@@ -119,10 +120,11 @@ def create_audio_splits(data_dir = "./data/wavs100/", new_dir = "./data/splits10
                 
                 split = np.concatenate( (split, np.array(padding)) )
             new_file = '{}_split_{}.wav'.format(speaker_id,i)
-            clean_filepath = "train-clean-100/{}/".format(speaker_id)
-            if not os.path.exists(new_dir+clean_filepath):
-                    os.makedirs(new_dir+clean_filepath)
-            wavfile.write(new_dir+clean_filepath+new_file, sr, split)
+            clean_filepath = "{}/".format(speaker_id)
+            output_dir = os.path.join(new_dir,clean_filepath)
+            if not os.path.exists(output_dir):
+                    os.makedirs(output_dir)
+            wavfile.write(os.path.join(output_dir,new_file), sr, split)
             i += 1
 
 
