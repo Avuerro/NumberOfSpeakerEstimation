@@ -1,43 +1,84 @@
 import tensorflow as tf 
 import keras 
 from keras import backend as k 
+from sklearn.model_selection import train_test_split
+import numpy as np
+import soundfile as sf
+
+from .util import stft
+
 import pdb
 import os
+import glob
 
 
-def parse_function(filename, label):
-#     audio_sample, sample_rate = tf.audio.decode_wav(filename)    
-    audio_binary = tf.read_file(filename)
-    audio_decoded = tf.contrib.ffmpeg.decode_audio(
-        audio_binary,
-        file_format="wav",
-        samples_per_second=16000,
-        channel_count=1
-    )
-    return tf.cast(audio_decoded, tf.float32),label
+
+class DataSet(object):
+    def __init__(self, 
+                    training_dir, 
+                    val_split, 
+                    batch_size=32,
+                    sample_rate=16000, 
+                    original_sample_length=5,
+                    excerpt_duration=1,
+                    num_parallel_calls=4):
+        self.filenames = tf.io.gfile.glob(training_dir)
+        self.labels = list( map(self.obtain_label, self.filenames) )
+        self.validation_split = val_split
+        self.batch_size = batch_size
+        self.excerpt_duration = excerpt_duration
+        self.sample_rate = sample_rate
+        self.original_sample_frame_length = original_sample_length * sample_rate
+        self.num_parallel_calls = num_parallel_calls
 
 
-def select_random_excerpt(file,label): #length can be changed..
-    excerpt_duration=1
-    excerpt_duration_frames = excerpt_duration * 16000
-    limit = 80000 - excerpt_duration_frames
-    start = np.random.randint(0,limit)
-    end = start + excerpt_duration_frames
-#     pdb.set_trace()
-    return tf.slice(tf.squeeze(file), [start], [excerpt_duration_frames]),label
+    def obtain_label(self,filename):
+        return filename.split("/")[-2] 
+
+    def parse_function(self,filename):
+        filepath = bytes.decode(filename.numpy())
+        audio, sample_rate = sf.read(filepath)
+        label = self.obtain_label(filepath)
+        return tf.cast(audio, tf.float32),label
+    
+    def parse_function_wrapper(self, filename):
+        return tf.py_function(func=self.parse_function, inp=[filename], Tout=(tf.float32, tf.string))
 
 
-## TODO 
-### add stft conversion
-### put this into a class
-filenames = glob.glob('../data/merged_outputtrain/*/*')
-labels = list(map(obtain_label, filenames))
-dataset = tf.data.Dataset.from_tensor_slices( (filenames,labels) )
-dataset = dataset.map(parse_function, num_parallel_calls=4)
-dataset = dataset.map(select_random_excerpt, num_parallel_calls=4)
-dataset = dataset.batch(32)
-dataset = dataset.prefetch(1)
+    def select_random_excerpt(self,file,label): #length can be changed..
+        excerpt_duration = self.excerpt_duration
+        excerpt_duration_frames = excerpt_duration * self.sample_rate
+        limit = self.original_sample_frame_length - excerpt_duration_frames
+        start = np.random.randint(0,limit)
+        return tf.slice(tf.squeeze(file), [start], [excerpt_duration_frames-1]),label
 
+    def stft_tensorflow(self, audio_tensor, label):
+        data = audio_tensor.numpy()
+        stft_data = stft(data)
+        label = int(bytes.decode(label.numpy()))
+        return tf.cast(stft_data, tf.float32),tf.convert_to_tensor(label, dtype=tf.int16)
+    
+    def stft_wrapper(self,audiofile, label): 
+        audio, label = tf.py_function(func=self.stft_tensorflow, inp=[audiofile,label], Tout=(tf.float32,tf.int16) )
+        return audio, label
+
+    def reshape(self,audiofile, label):
+        return tf.reshape(audiofile,shape=(1,100,201)), label
+
+    def _datafactory(self, dataset):
+        dataset = dataset.map(self.parse_function_wrapper, num_parallel_calls = self.num_parallel_calls)
+        dataset = dataset.map(self.select_random_excerpt, num_parallel_calls = self.num_parallel_calls)
+        dataset = dataset.map(self.stft_wrapper, num_parallel_calls = self.num_parallel_calls)
+        dataset = dataset.map(self.reshape, num_parallel_calls = self.num_parallel_calls)
+        dataset = dataset.batch(32)
+        dataset = dataset.prefetch(tf.data.AUTOTUNE)
+        return dataset
+
+    def get_data(self):
+        X_train, X_val, y_train, y_val = train_test_split(self.filenames, self.labels, train_size=self.validation_split, random_state=42)
+        train_dataset = tf.data.Dataset.list_files(X_train)
+        val_dataset = tf.data.Dataset.list_files(X_val)
+        return self._datafactory(train_dataset), self._datafactory(val_dataset)
 
 
 
