@@ -19,8 +19,8 @@ class DataSet(object):
                     val_split, 
                     batch_size=32,
                     sample_rate=16000, 
-                    original_sample_length=5,
-                    excerpt_duration=1,
+                    original_sample_length=10,
+                    excerpt_duration=5,
                     num_parallel_calls=4):
         self.filenames = tf.io.gfile.glob(training_dir)
         self.labels = list( map(self.obtain_label, self.filenames) )
@@ -46,11 +46,10 @@ class DataSet(object):
 
 
     def select_random_excerpt(self,file,label): #length can be changed..
-        excerpt_duration = self.excerpt_duration
-        excerpt_duration_frames = excerpt_duration * self.sample_rate
+        excerpt_duration_frames = self.excerpt_duration * self.sample_rate
         limit = self.original_sample_frame_length - excerpt_duration_frames
         start = np.random.randint(0,limit)
-        return tf.slice(tf.squeeze(file), [start], [excerpt_duration_frames-1]),label
+        return tf.slice(file, [start], [excerpt_duration_frames-1]),label
 
     def stft_tensorflow(self, audio_tensor, label):
         data = audio_tensor.numpy()
@@ -63,7 +62,7 @@ class DataSet(object):
         return audio, label
 
     def reshape(self,audiofile, label):
-        return tf.reshape(audiofile,shape=(1,100,201)), label
+        return tf.reshape(audiofile,shape=(1,500,201)), label
 
     def _datafactory(self, dataset):
         dataset = dataset.map(self.parse_function_wrapper, num_parallel_calls = self.num_parallel_calls)
@@ -75,7 +74,7 @@ class DataSet(object):
         return dataset
 
     def get_data(self):
-        X_train, X_val, y_train, y_val = train_test_split(self.filenames, self.labels, train_size=self.validation_split, random_state=42)
+        X_train, X_val, y_train, y_val = train_test_split(self.filenames, self.labels, test_size=self.validation_split, random_state=42)
         train_dataset = tf.data.Dataset.list_files(X_train)
         val_dataset = tf.data.Dataset.list_files(X_val)
         return self._datafactory(train_dataset), self._datafactory(val_dataset)
@@ -84,7 +83,7 @@ class DataSet(object):
 
 ## NOTICE
 ## everything below this comment is most likely obsolete
-class CustomDataIterator(tf.keras.preprocessing.image.DirectoryIterator):
+# class CustomDataIterator(tf.keras.preprocessing.image.DirectoryIterator):
 
 #     def __init__(self,*args,**kwargs):
 #         self.label_dir = kwargs.pop('label_dir')
@@ -125,9 +124,6 @@ class CustomDataIterator(tf.keras.preprocessing.image.DirectoryIterator):
 #                 self.used_indices.append(index)            
 
 #         return self._get_batches_of_transformed_samples(index_array)
-
-def custom_preprocessing(sound_sample):
-    print(sound_sample.shape)
 
 
 
