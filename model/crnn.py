@@ -11,7 +11,7 @@ class CRNN(object):
 
     def get_model(self):
         initializer = tf.keras.initializers.VarianceScaling(scale=1.0, mode="fan_avg", distribution="uniform", seed=None)
-        optimizer = tf.keras.optimizers.Adam(learning_rate=self.learning_rate)
+        optimizer = tf.keras.optimizers.Adam(learning_rate=self.learning_rate, epsilon=1e-8)
         model = Sequential([
                     layers.ZeroPadding2D(padding=((0,0),(0,0)), batch_input_shape=(None, 1,500,201),name="zero1",data_format="channels_last"),
                     layers.Conv2D(64,kernel_size=(3,3),strides=(1,1),name="conv1",activation="relu",kernel_initializer=initializer,data_format="channels_first"),
