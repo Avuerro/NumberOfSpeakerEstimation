@@ -75,7 +75,7 @@ def pad_audio_file(audio_file, sample_rate, total_time):
 def create_audio_splits(data_dir = "./data/wavs100/", new_dir = "./data/splits100/", t = 10):
     nr_of_files = 0
     files_per_speaker = []
-    
+
     splits_dir = data_dir 
     speakers = os.listdir(data_dir)
     speakers_done = []
@@ -172,9 +172,8 @@ def merge_audiofiles(data_dir = './data/train100/', new_dir = "./data/trainset/"
     files_per_speaker = []
 
     # First generate a list of all speaker files
-    folder = os.listdir(data_dir)[0]
-    splits_dir = data_dir + folder
-    speakers = os.listdir(splits_dir)
+    splits_dir = data_dir 
+    speakers = os.listdir(data_dir)
     speakers_done = []
 
     for speaker in speakers:
