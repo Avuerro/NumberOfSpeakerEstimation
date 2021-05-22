@@ -81,6 +81,7 @@ class DataSet(object):
         dataset = dataset.map(self.stft_wrapper, num_parallel_calls = self.num_parallel_calls)
         dataset = dataset.map(self.reshape, num_parallel_calls = self.num_parallel_calls)
         dataset = dataset.map(self.onehot_encode, num_parallel_calls = self.num_parallel_calls)
+        dataset = dataset.map(self.scale_data, num_parallel_calls=self.num_parallel_calls)
         dataset = dataset.batch(32)
         dataset = dataset.prefetch(tf.data.AUTOTUNE)
         return dataset
