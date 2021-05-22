@@ -41,7 +41,9 @@ tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram
 wandb.init(project='asr_speaker_estimation', entity='chickens4peace',config=tf.compat.v1.flags.FLAGS, sync_tensorboard=True, dir='/vol/tensusers3/camghane/ASR/run_metadata')
 
 # init dataset
-training_data, validation_data = data.DataSet(DATA_DIR, val_split=VALIDATION_SPLIT)
+dataset_object = data.DataSet(DATA_DIR, val_split=VALIDATION_SPLIT)
+training_data, validation_data = dataset_object.get_data()
+
 ## init model
 model = crnn.CRNN(LEARNING_RATE).get_model()
 ### start training
