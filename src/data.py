@@ -1,6 +1,4 @@
 import tensorflow as tf 
-import keras 
-from keras import backend as k 
 from sklearn.model_selection import train_test_split
 import numpy as np
 import soundfile as sf
