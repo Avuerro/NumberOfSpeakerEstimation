@@ -1,6 +1,5 @@
 import tensorflow as tf 
-import keras
-from keras import backend as K 
+from tf.keras import backend as K 
 
 
 # copied from https://github.com/faroit/CountNet/blob/master/predict.py
