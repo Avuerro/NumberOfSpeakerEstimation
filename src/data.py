@@ -84,6 +84,25 @@ class DataSet(object):
 
 
 
+def calculate_dataset_mean(dataset):
+    total_sum, nr_of_samples = 0., 0.
+    for batch_data,_ in dataset.as_numpy_iterator():
+        total_sum += np.sum(batch_data)
+        nr_of_samples +=  len(batch_data) * (batch_data.shape[2] * batch_data.shape[3]) 
+    
+    return total_sum / nr_of_samples
+
+def calculate_dataset_variance(dataset, mean):
+    sum_squared_differenes, nr_of_samples = 0., 0.
+    for batch_data,_ in dataset.as_numpy_iterator():
+        subtract_average = batch_data - dataset_mean
+        squared_result = subtract_average ** 2
+        sum_squared_differenes += np.sum(squared_result)
+        nr_of_samples +=  len(batch_data) * (batch_data.shape[2] * batch_data.shape[3]) 
+        
+    return sum_squared_differenes / nr_of_samples
+
+
 ## NOTICE
 ## everything below this comment is most likely obsolete
 # class CustomDataIterator(tf.keras.preprocessing.image.DirectoryIterator):
