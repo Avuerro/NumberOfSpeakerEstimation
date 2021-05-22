@@ -53,20 +53,25 @@ class DataSet(object):
         data = audio_tensor.numpy()
         stft_data = stft(data)
         label = int(bytes.decode(label.numpy()))
-        return tf.cast(stft_data, tf.float32),tf.convert_to_tensor(label, dtype=tf.int16)
+        return tf.cast(stft_data, tf.float32),tf.convert_to_tensor(label, dtype=tf.int32)
     
     def stft_wrapper(self,audiofile, label): 
-        audio, label = tf.py_function(func=self.stft_tensorflow, inp=[audiofile,label], Tout=(tf.float32,tf.int16) )
+        audio, label = tf.py_function(func=self.stft_tensorflow, inp=[audiofile,label], Tout=(tf.float32,tf.int32) )
         return audio, label
 
     def reshape(self,audiofile, label):
         return tf.reshape(audiofile,shape=(1,500,201)), label
-
+    
+    def onehot_encode(self,audiofile,label):
+        label_onehot = tf.one_hot(label, 11) #11 = number of classes..
+        return audiofile,label_onehot
+    
     def _datafactory(self, dataset):
         dataset = dataset.map(self.parse_function_wrapper, num_parallel_calls = self.num_parallel_calls)
         dataset = dataset.map(self.select_random_excerpt, num_parallel_calls = self.num_parallel_calls)
         dataset = dataset.map(self.stft_wrapper, num_parallel_calls = self.num_parallel_calls)
         dataset = dataset.map(self.reshape, num_parallel_calls = self.num_parallel_calls)
+        dataset = dataset.map(self.onehot_encode, num_parallel_calls = self.num_parallel_calls)
         dataset = dataset.batch(32)
         dataset = dataset.prefetch(tf.data.AUTOTUNE)
         return dataset

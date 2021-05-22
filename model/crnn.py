@@ -31,7 +31,7 @@ class CRNN(object):
                 ])
         model.compile(optimizer=optimizer,
               loss=tf.keras.losses.categorical_crossentropy,
-              metrics=['accuracy', {'class_mae':error_function.class_mae}]
+              metrics=[{'accuracy': tf.keras.metrics.CategoricalAccuracy()},{'class_mae':error_function.class_mae}]
              )
 
         return model
