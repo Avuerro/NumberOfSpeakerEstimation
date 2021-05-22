@@ -15,6 +15,8 @@ class DataSet(object):
     def __init__(self, 
                     training_dir, 
                     val_split, 
+                    mean,
+                    std,
                     batch_size=32,
                     sample_rate=16000, 
                     original_sample_length=10,
@@ -22,6 +24,8 @@ class DataSet(object):
                     num_parallel_calls=4):
         self.filenames = tf.io.gfile.glob(training_dir)
         self.labels = list( map(self.obtain_label, self.filenames) )
+        self.mean = tf.convert_to_tensor(mean, dtype=tf.float32)
+        self.std = tf.convert_to_tensor(std, dtype=tf.float32)
         self.validation_split = val_split
         self.batch_size = batch_size
         self.excerpt_duration = excerpt_duration
@@ -55,17 +59,22 @@ class DataSet(object):
         label = int(bytes.decode(label.numpy()))
         return tf.cast(stft_data, tf.float32),tf.convert_to_tensor(label, dtype=tf.int32)
     
-    def stft_wrapper(self,audiofile, label): 
-        audio, label = tf.py_function(func=self.stft_tensorflow, inp=[audiofile,label], Tout=(tf.float32,tf.int32) )
+    def stft_wrapper(self,audio_tensor, label): 
+        audio, label = tf.py_function(func=self.stft_tensorflow, inp=[audio_tensor,label], Tout=(tf.float32,tf.int32) )
         return audio, label
 
-    def reshape(self,audiofile, label):
-        return tf.reshape(audiofile,shape=(1,500,201)), label
+    def reshape(self,audio_tensor, label):
+        return tf.reshape(audio_tensor,shape=(1,500,201)), label
     
-    def onehot_encode(self,audiofile,label):
+    def onehot_encode(self,audio_tensor,label):
         label_onehot = tf.one_hot(label, 11) #11 = number of classes..
-        return audiofile,label_onehot
+        return audio_tensor,label_onehot
     
+
+    def scale_data(self, audio_tensor, label):
+        rescaled = (audio_tensor - self.mean) / self.std
+        return rescaled,label
+
     def _datafactory(self, dataset):
         dataset = dataset.map(self.parse_function_wrapper, num_parallel_calls = self.num_parallel_calls)
         dataset = dataset.map(self.select_random_excerpt, num_parallel_calls = self.num_parallel_calls)
@@ -92,7 +101,7 @@ def calculate_dataset_mean(dataset):
     
     return total_sum / nr_of_samples
 
-def calculate_dataset_variance(dataset, mean):
+def calculate_dataset_std(dataset, mean):
     sum_squared_differenes, nr_of_samples = 0., 0.
     for batch_data,_ in dataset.as_numpy_iterator():
         subtract_average = batch_data - dataset_mean
@@ -100,7 +109,7 @@ def calculate_dataset_variance(dataset, mean):
         sum_squared_differenes += np.sum(squared_result)
         nr_of_samples +=  len(batch_data) * (batch_data.shape[2] * batch_data.shape[3]) 
         
-    return sum_squared_differenes / nr_of_samples
+    return np.sqrt(sum_squared_differenes / nr_of_samples)
 
 
 ## NOTICE
