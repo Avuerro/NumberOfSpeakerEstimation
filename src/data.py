@@ -9,26 +9,23 @@ import pdb
 import os
 import glob
 
-
-
 class DataSet(object):
     def __init__(self, 
-                    training_dir, 
-                    val_split, 
+                    data, 
                     batch_size=32,
                     sample_rate=16000, 
                     original_sample_length=10,
                     excerpt_duration=5,
-                    num_parallel_calls=4):
-        self.filenames = tf.io.gfile.glob(training_dir)
-        self.labels = list( map(self.obtain_label, self.filenames) )
-        self.validation_split = val_split
+                    num_parallel_calls=4,
+                    scale_data = False):
+        self.data = data
+        self.labels = list( map(self.obtain_label, self.data) )
         self.batch_size = batch_size
         self.excerpt_duration = excerpt_duration
         self.sample_rate = sample_rate
         self.original_sample_frame_length = original_sample_length * sample_rate
         self.num_parallel_calls = num_parallel_calls
-        self.scale = False
+        self.scale = scale_data
         self.mean = tf.convert_to_tensor(0, dtype=tf.float32)
         self.std = tf.convert_to_tensor(0, dtype=tf.float32)
 
@@ -84,37 +81,37 @@ class DataSet(object):
         dataset = dataset.map(self.stft_wrapper, num_parallel_calls = self.num_parallel_calls)
         dataset = dataset.map(self.reshape, num_parallel_calls = self.num_parallel_calls)
         dataset = dataset.map(self.onehot_encode, num_parallel_calls = self.num_parallel_calls)
-        if self.scale:
-            dataset = dataset.map(self.scale_data, num_parallel_calls=self.num_parallel_calls)
         dataset = dataset.batch(32)
+        if self.scale:
+            self.mean = self.calculate_dataset_mean(dataset)
+            self.std = self.calculate_dataset_std(dataset, self.mean)
+            dataset = dataset.map(self.scale_data, num_parallel_calls=self.num_parallel_calls)
         dataset = dataset.prefetch(tf.data.AUTOTUNE)
         return dataset
 
     def get_data(self):
-        X_train, X_val, y_train, y_val = train_test_split(self.filenames, self.labels, test_size=self.validation_split, random_state=42)
-        train_dataset = tf.data.Dataset.list_files(X_train)
-        val_dataset = tf.data.Dataset.list_files(X_val)
-        return self._datafactory(train_dataset), self._datafactory(val_dataset)
+        dataset = tf.data.Dataset.list_files(self.data)
+        return self._datafactory(dataset)
 
-
-
-def calculate_dataset_mean(dataset):
-    total_sum, nr_of_samples = 0., 0.
-    for batch_data,_ in dataset.as_numpy_iterator():
-        total_sum += np.sum(batch_data)
-        nr_of_samples +=  len(batch_data) * (batch_data.shape[2] * batch_data.shape[3]) 
-    
-    return total_sum / nr_of_samples
-
-def calculate_dataset_std(dataset, mean):
-    sum_squared_differenes, nr_of_samples = 0., 0.
-    for batch_data,_ in dataset.as_numpy_iterator():
-        subtract_average = batch_data - mean
-        squared_result = subtract_average ** 2
-        sum_squared_differenes += np.sum(squared_result)
-        nr_of_samples +=  len(batch_data) * (batch_data.shape[2] * batch_data.shape[3]) 
+    def calculate_dataset_mean(self, dataset):
+        total_sum, nr_of_samples = 0., 0.
+        for batch_data,_ in dataset.as_numpy_iterator():
+            print(batch_data.shape)
+            total_sum += np.sum(batch_data)
+            nr_of_samples +=  len(batch_data) * (batch_data.shape[2] * batch_data.shape[3]) 
         
-    return np.sqrt(sum_squared_differenes / nr_of_samples)
+        return total_sum / nr_of_samples
+
+    def calculate_dataset_std(self, dataset, mean):
+        sum_squared_differenes, nr_of_samples = 0., 0.
+        for batch_data,_ in dataset.as_numpy_iterator():
+            print(batch_data.shape)
+            subtract_average = batch_data - mean
+            squared_result = subtract_average ** 2
+            sum_squared_differenes += np.sum(squared_result)
+            nr_of_samples +=  len(batch_data) * (batch_data.shape[2] * batch_data.shape[3]) 
+        
+        return np.sqrt(sum_squared_differenes / nr_of_samples)
 
 
 ## NOTICE
