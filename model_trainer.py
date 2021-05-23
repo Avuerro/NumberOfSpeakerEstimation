@@ -1,11 +1,11 @@
 import tensorflow as tf
 from model import crnn
 from src import data
-
 import wandb
 from wandb.keras import WandbCallback
-
+from sklearn.model_selection import train_test_split
 import datetime
+
 # Parameters #
 DATA_DIR = '/vol/tensusers3/camghane/ASR/LibriSpeech/train-data/train-clean-100/merged/train/*/*.wav'
 BATCH_SIZE = 32
@@ -41,8 +41,17 @@ tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram
 wandb.init(project='asr_speaker_estimation', entity='chickens4peace',config=tf.compat.v1.flags.FLAGS, sync_tensorboard=True, dir='/vol/tensusers3/camghane/ASR/run_metadata')
 
 # init dataset
-dataset_object = data.DataSet(DATA_DIR, val_split=VALIDATION_SPLIT)
-training_data, validation_data = dataset_object.get_data()
+## create train and validation splits
+filenames = glob.glob(DATA_DIR)
+labels = list( map(lambda x: x.split("/")[-2] , filenames) )
+X_train, X_val, y_train, y_val = train_test_split(filenames, labels, test_size=VALIDATION_SPLIT, random_state=42) 
+## create dataset objects
+train_dataset_object = DataSet(X_train, scale_data = True)
+validation_dataset_object = DataSet(X_val, scale_data = True)
+## get data
+training_data = train_dataset_object.get_data()
+validation_data = validation_dataset_object.get_data()
+
 
 ## init model
 model = crnn.CRNN(LEARNING_RATE).get_model()
