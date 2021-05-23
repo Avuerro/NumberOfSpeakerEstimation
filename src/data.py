@@ -96,7 +96,6 @@ class DataSet(object):
     def calculate_dataset_mean(self, dataset):
         total_sum, nr_of_samples = 0., 0.
         for batch_data,_ in dataset.as_numpy_iterator():
-            print(batch_data.shape)
             total_sum += np.sum(batch_data)
             nr_of_samples +=  len(batch_data) * (batch_data.shape[2] * batch_data.shape[3]) 
         
@@ -105,7 +104,6 @@ class DataSet(object):
     def calculate_dataset_std(self, dataset, mean):
         sum_squared_differenes, nr_of_samples = 0., 0.
         for batch_data,_ in dataset.as_numpy_iterator():
-            print(batch_data.shape)
             subtract_average = batch_data - mean
             squared_result = subtract_average ** 2
             sum_squared_differenes += np.sum(squared_result)
