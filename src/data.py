@@ -15,8 +15,6 @@ class DataSet(object):
     def __init__(self, 
                     training_dir, 
                     val_split, 
-                    mean,
-                    std,
                     batch_size=32,
                     sample_rate=16000, 
                     original_sample_length=10,
@@ -24,16 +22,21 @@ class DataSet(object):
                     num_parallel_calls=4):
         self.filenames = tf.io.gfile.glob(training_dir)
         self.labels = list( map(self.obtain_label, self.filenames) )
-        self.mean = tf.convert_to_tensor(mean, dtype=tf.float32)
-        self.std = tf.convert_to_tensor(std, dtype=tf.float32)
         self.validation_split = val_split
         self.batch_size = batch_size
         self.excerpt_duration = excerpt_duration
         self.sample_rate = sample_rate
         self.original_sample_frame_length = original_sample_length * sample_rate
         self.num_parallel_calls = num_parallel_calls
+        self.scale = False
+        self.mean = tf.convert_to_tensor(0, dtype=tf.float32)
+        self.std = tf.convert_to_tensor(0, dtype=tf.float32)
 
-
+    def set_mean_and_std(self, mean, std):
+        self.mean = tf.convert_to_tensor(mean, dtype=tf.float32)
+        self.std = tf.convert_to_tensor(std, dtype=tf.float32)
+        self.scale = True
+        
     def obtain_label(self,filename):
         return filename.split("/")[-2] 
 
@@ -81,7 +84,8 @@ class DataSet(object):
         dataset = dataset.map(self.stft_wrapper, num_parallel_calls = self.num_parallel_calls)
         dataset = dataset.map(self.reshape, num_parallel_calls = self.num_parallel_calls)
         dataset = dataset.map(self.onehot_encode, num_parallel_calls = self.num_parallel_calls)
-        dataset = dataset.map(self.scale_data, num_parallel_calls=self.num_parallel_calls)
+        if self.scale:
+            dataset = dataset.map(self.scale_data, num_parallel_calls=self.num_parallel_calls)
         dataset = dataset.batch(32)
         dataset = dataset.prefetch(tf.data.AUTOTUNE)
         return dataset
@@ -105,7 +109,7 @@ def calculate_dataset_mean(dataset):
 def calculate_dataset_std(dataset, mean):
     sum_squared_differenes, nr_of_samples = 0., 0.
     for batch_data,_ in dataset.as_numpy_iterator():
-        subtract_average = batch_data - dataset_mean
+        subtract_average = batch_data - mean
         squared_result = subtract_average ** 2
         sum_squared_differenes += np.sum(squared_result)
         nr_of_samples +=  len(batch_data) * (batch_data.shape[2] * batch_data.shape[3]) 
