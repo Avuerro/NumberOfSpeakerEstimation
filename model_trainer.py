@@ -1,19 +1,21 @@
 import tensorflow as tf
 from model import crnn
 from src import data
+from src.data import DataSet
 import wandb
 from wandb.keras import WandbCallback
 from sklearn.model_selection import train_test_split
+import glob
 import datetime
 
 # Parameters #
-DATA_DIR = '/vol/tensusers3/camghane/ASR/LibriSpeech/train-data/train-clean-100/merged/train/*/*.wav'
+DATA_DIR = '/vol/tensusers3/camghane/ASR/LibriSpeech_train_clean_360/data/train-clean-360/merged/train/*/*.wav'
 BATCH_SIZE = 32
 SAVE_MODEL_DIR = '/vol/tensusers3/camghane/ASR/weights'
 ## Model ##
 LEARNING_RATE = 0.001
 ### Training ###
-EPOCHS = 10
+EPOCHS = 50
 VALIDATION_SPLIT = 0.2
 
 # callbacks TODO Move to separate file ?
@@ -21,17 +23,24 @@ VALIDATION_SPLIT = 0.2
 model_checkpoints_callback = tf.keras.callbacks.ModelCheckpoint(
     filepath = SAVE_MODEL_DIR,
     save_weights_only = False, #for safety saving full model
-    monitor = 'class_mae',
+    monitor = 'val_class_mae',
     mode = 'min',
     save_best_only = True
 )
 ## learningrate callback
 model_learning_rate_callback = tf.keras.callbacks.ReduceLROnPlateau(
-    monitor = 'class_mae',
+    monitor = 'val_class_mae',
     factor = 0.9,
     patience = 10,
     verbose = 1,
     mode = 'min'
+)
+
+model_early_stopping_callback = tf.keras.callbacks.EarylStopping(
+    monitor='val_class_mae',
+    min_delta=0.01,
+    patience=10,
+    mode='min'
 )
 
 # WANDB
@@ -60,4 +69,4 @@ model.fit(training_data,
           epochs = EPOCHS, 
           verbose = 2, 
           validation_data=validation_data,
-          callbacks = [model_checkpoints_callback, WandbCallback()])
+          callbacks = [model_checkpoints_callback, model_early_stopping_callback, WandbCallback()])
