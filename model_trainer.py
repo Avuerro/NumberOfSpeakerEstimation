@@ -36,7 +36,7 @@ model_learning_rate_callback = tf.keras.callbacks.ReduceLROnPlateau(
     mode = 'min'
 )
 
-model_early_stopping_callback = tf.keras.callbacks.EarylStopping(
+model_early_stopping_callback = tf.keras.callbacks.EarlyStopping(
     monitor='val_class_mae',
     min_delta=0.01,
     patience=10,
