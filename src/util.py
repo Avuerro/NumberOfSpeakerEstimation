@@ -220,8 +220,8 @@ def merge_audiofiles(data_dir = './data/train100/', new_dir = "./data/trainset/"
             speaker_files = files_per_speaker[speaker_id]
             # For each random speaker, pick one random file:
             random_file = np.random.choice(speaker_files)
-
-            real_ids.append(random_file.split('/')[4])
+            
+            real_ids.append(random_file.split('/')[-1].split('_')[0])
 
             files_to_merge.append(random_file)
             # Remove file from original set, to prevent duplicates among merged files
