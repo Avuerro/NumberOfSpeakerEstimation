@@ -36,4 +36,4 @@ After training, make sure to download the trained model from this specific run.
 
 If you want to test the model that has been trained, make sure that the correct path to the test set is set in `model_test.py`.
 Besides this, also make sure that the correct path to the pretrained model is set in `model_test.py`.
-After making sure these things are set correctly, simply run the command: `./run_model.sh'.
+After making sure these things are set correctly, simply run the command: `./run_model.sh`.
