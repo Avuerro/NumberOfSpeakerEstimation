@@ -14,7 +14,7 @@ import pdb
 # Parameters
 DATA_DIR = '/vol/tensusers3/camghane/ASR/LibriSpeech_test_clean/data/test-clean/merged/train/*/*.wav'
 BATCH_SIZE = 32
-SAVED_MODEL_DIR = 'model-best.h5'
+SAVED_MODEL_DIR = 'model-best-500.h5'
 
 ## loading the model
 
@@ -41,5 +41,5 @@ for audio,label in tqdm(test_dataset.as_numpy_iterator()):
 
 performance_dictionary = {'y_true': y_true, 'y_pred': y_pred}
 
-with open('/vol/tensusers3/camghane/ASR/predictions.json', 'w') as filewriter:
+with open('/vol/tensusers3/camghane/ASR/jdy/predictions_500.json', 'w') as filewriter:
     json.dump(performance_dictionary, filewriter)

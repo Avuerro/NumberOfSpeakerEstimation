@@ -7,11 +7,12 @@ from wandb.keras import WandbCallback
 from sklearn.model_selection import train_test_split
 import glob
 import datetime
+import pickle
 
 # Parameters #
-DATA_DIR = '/vol/tensusers3/camghane/ASR/LibriSpeech_train_clean_360/data/train-clean-360/merged/train/*/*.wav'
+DATA_DIR = '/vol/tensusers3/camghane/ASR/jdy/data/trainset750/merged/train/*/*.wav'
 BATCH_SIZE = 32
-SAVE_MODEL_DIR = '/vol/tensusers3/camghane/ASR/weights'
+SAVE_MODEL_DIR = '/vol/tensusers3/camghane/ASR/jdy/weights'
 ## Model ##
 LEARNING_RATE = 0.001
 ### Training ###
