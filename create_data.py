@@ -13,7 +13,7 @@ for dataset in DATASETS:
 	print("converting to wavs")
 	in_dir = os.path.join(data_dir,'train','audio')
 	wav_data = os.path.join(data_dir, 'data','wav')
-	util.flacs_to_wavs(data_dir, wav_data+'/')
+	util.flacs_to_wavs(in_dir, wav_data+'/')
 
 
 	#splitting
