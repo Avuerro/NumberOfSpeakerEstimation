@@ -16,7 +16,6 @@ def flacs_to_wavs(data_dir = "./data/LibriSpeech/", new_dir = "./data/wavs100/")
 
     if not os.path.exists(new_dir):
         os.makedirs(new_dir)
-    
     for subdir, dirs, files in tqdm(os.walk(data_dir)):
         for file in files:
             filepath = subdir + os.sep + file
@@ -97,35 +96,45 @@ def create_audio_splits(data_dir = "./data/wavs100/", new_dir = "./data/splits10
     print("Creating the splits")
     for speaker in tqdm(files_per_speaker.keys()):
         complete_audio = []
-        # while len(speaker) > 0:
-        for filepath in files_per_speaker[speaker]:
-            # filepath = speaker.pop(0)
-            # speaker_id = filepath.split('/')[4]
-            
-            data, sr = sf.read(filepath)
-            #print(len(data))
-            complete_audio.extend(data)
-        #print(len(complete_audio))
-        # amount of splits to make:
-        nr_of_splits = math.ceil(len(complete_audio)/(t*sr))
+   
+        speaker_files = files_per_speaker[speaker]
+        if len(speaker_files) > 2000:
+            speaker_files = np.random.choice(files_per_speaker[speaker], 2000, replace=False)
+
+        # split filespaths array in sub-arrays with length 10
+        split_indices = np.arange(10,len(speaker_files),10)
+        splits_of_filepaths = np.split(speaker_files,split_indices)
+        print(f"There are {len(speaker_files)} files for speaker {speaker}")
+        for split_of_filepaths in splits_of_filepaths:
+            for filepath in split_of_filepaths:
+                data, sr = sf.read(filepath)
+                complete_audio.extend(data)
+
+            ## check if concatenated audios are large enough
+
+            if len(complete_audio) > (t*sr):
+                nr_of_splits = math.ceil(len(complete_audio)/(t*sr))
         
-        audio_splits = np.array_split(complete_audio, nr_of_splits)
-        
-        i = 0
-        for split in audio_splits:
-            if len(split) < (t*sr):
+                audio_splits = np.array_split(complete_audio, nr_of_splits)
+                i = 0
+                for split in audio_splits:
+                    if len(split) < (t*sr):
+                        
+                        to_pad = (t*sr) - len(split)
+                        padding = split[0:to_pad]
+                        
+                        split = np.concatenate( (split, np.array(padding)) )
+                    new_file = '{}_split_{}.wav'.format(speaker,i)
+                    clean_filepath = "{}/".format(speaker)
+                    output_dir = os.path.join(new_dir,clean_filepath)
+                    if not os.path.exists(output_dir):
+                            os.makedirs(output_dir)
+                    wavfile.write(os.path.join(output_dir,new_file), sr, split)
+                    i += 1
+                complete_audio = []
+            else:
+                continue
                 
-                to_pad = (t*sr) - len(split)
-                padding = split[0:to_pad]
-                
-                split = np.concatenate( (split, np.array(padding)) )
-            new_file = '{}_split_{}.wav'.format(speaker,i)
-            clean_filepath = "{}/".format(speaker)
-            output_dir = os.path.join(new_dir,clean_filepath)
-            if not os.path.exists(output_dir):
-                    os.makedirs(output_dir)
-            wavfile.write(os.path.join(output_dir,new_file), sr, split)
-            i += 1
 
 
 
