@@ -174,14 +174,15 @@ def min_max_normalization(data, a = -1, b = 1):
 def collect_speaker_files(data_dir):
 
     if type(data_dir) != list:
-        data_dir = list(data_dir)
-
+        data_dir = [data_dir]
     # First generate a list of all speaker files
     # dealing with multilingual datasets
     speakers = [os.listdir(x) for x in data_dir]
     speakers_done = []
-
-    for i, speaker_set in enum(speakers):
+    nr_of_files = 0
+    files_per_speaker = []
+    
+    for i, speaker_set in enumerate(speakers):
         for speaker in speaker_set:
             speaker_files = []
             for subdir, dirs, files in os.walk(data_dir[i]+"/{}".format(speaker)):
@@ -195,7 +196,8 @@ def collect_speaker_files(data_dir):
                     nr_of_files += len(speaker_files)
                     speakers_done.append(speaker)
                     files_per_speaker.append(speaker_files)
-
+        ## language set is finished, reset speakers done
+        speakers_done = []
     files_per_speaker = np.array(files_per_speaker)
     return files_per_speaker, nr_of_files
 
@@ -217,7 +219,6 @@ def merge_audiofiles(data_dir = './data/train100/', new_dir = "./data/trainset/"
     i = 1
     amount_of_datapoints = 0
     progress_bar = tqdm(total = amount_of_datapoints) 
-    pdb.set_trace()
     while(files_per_speaker.shape[0] > 0):
         # Calculate how many speakers should be merged
         amount_of_speakers = i % (max_nr_of_speakers + 1)

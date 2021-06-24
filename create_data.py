@@ -11,25 +11,25 @@ for dataset in DATASETS:
 
 	#converting to wavs
 	print("converting to wavs")
-	in_dir = os.path.join(data_dir,'train','audio')
-	wav_data = os.path.join(data_dir, 'data','wav')
+	in_dir = os.path.join(data_dir,'test','audio')
+	wav_data = os.path.join(data_dir, 'data','test','wav')
 	util.flacs_to_wavs(in_dir, wav_data+'/')
 
 
 	#splitting
 	print("splitting")
-	split_data = os.path.join(data_dir, 'data','split')
+	split_data = os.path.join(data_dir, 'data','test','split')
 	t=10
 	util.create_audio_splits(wav_data, split_data+'/', t)
 
 	#loudness
 	print("normalizing")
-	normalized_data = os.path.join(data_dir, 'data','normalized')
+	normalized_data = os.path.join(data_dir, 'data','test','normalized')
 	target = 70.
 	util.change_loudness(split_data, normalized_data +'/', target)
 
 	#merging
 	print("merging data")
-	merged_data = os.path.join(data_dir, 'data', 'merged')
+	merged_data = os.path.join(data_dir, 'data', 'test','merged')
 	max_nr_of_speakers = 10
 	util.merge_audiofiles(normalized_data, merged_data +'/', max_nr_of_speakers)
