@@ -5,8 +5,7 @@ The first goal is to replicate the following study: [CountNet: Estimating the Nu
 On top of that, two experiments are executed with this model:
 
  - Investigating the effect of the number of unique speakers in the dataset on this model
- - TODO: Briefly explain Chihabs experiment
-
+ - Investigating the effect of Multilingual data on the performance of the model and its ability to generalize to unseen data
 
 ## Structure of this repo
 
