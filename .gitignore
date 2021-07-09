@@ -1,6 +1,8 @@
-# Datafolder
+# Folders to ignore
 
 data/
+results/
+samples/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
