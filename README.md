@@ -11,17 +11,18 @@ On top of that, two experiments are executed with this model:
 
 This repo contains the following folders:
  - In `model`, the code for the general model can be found.
- - In `pretrained models`, some pretrained models of this project can be found. More specifically:
+ - In `pretrained_models`, some pretrained models of this project can be found. More specifically:
      - `model-best-baseline.h5` is the baseline model, trained completely on LibriSpeech-360 Clean.
      - `model-best-{250, 750, 750}.h5` are the models used for investigating the effect of the number of unique speakers in the dataset.
-     - TODO: Briefly summarize pretrained models for Chihabs experiment
+     - `multilingual-model-best.h5` is the model trained on the multilingual dataset and used to investigate whether it performs better than the baseline model.
  - In `src`, all python files containing code can be found.
  
  
 Besides these folders, there are the following notebook:
   - `Creating Dataset.ipynb` demonstrates the full pipeline of creating the dataset used for training the baseline model.
   - `Experimental Datasets Unique Speakers.ipynb` demonstrates all code used for testing the effect of the number of unique speakers in the dataset on the performance of the model.
-  
+   - `Experimens with Multilingual Datasets.ipynb` demonstrates all code used for testing the effect of training the model on a multilingual dataset on the performance of the model.
+   - `SaliencyMaps.ipynb` contains all code used to create the saliency maps for the models.
 
 ## How do I use this repo?
 
